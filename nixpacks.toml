@@ -1,5 +1,5 @@
 [variables]
-NIXPACKS_JDK_VERSION=21
+NIXPACKS_JDK_VERSION = '21'
 
 [phases.build]
 cmds = ['./mvnw -DoutputFile=target/mvn-dependency-list.log -B -DskipTests clean verify']
