@@ -1,5 +1,8 @@
+[variables]
+NIXPACKS_JDK_VERSION=21
+
 [phases.build]
-cmds = ['./mvnw -B -DskipTests clean verify']
+cmds = ['./mvnw -DoutputFile=target/mvn-dependency-list.log -B -DskipTests clean verify']
 
 [start]
 cmd = './mvnw -B -DskipTests spring-boot:run'
