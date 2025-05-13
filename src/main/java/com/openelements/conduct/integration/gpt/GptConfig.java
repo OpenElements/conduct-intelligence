@@ -1,6 +1,8 @@
 package com.openelements.conduct.integration.gpt;
 
+import com.openelements.conduct.data.CodeOfConductProvider;
 import com.openelements.conduct.data.ConductChecker;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -18,7 +20,7 @@ public class GptConfig {
     private String gptApiKey;
 
     @Bean
-    ConductChecker gptBasedConductChecker() {
-        return new GptBasedConductChecker(gptApiKey);
+    ConductChecker gptBasedConductChecker(@NonNull final CodeOfConductProvider codeOfConductProvider) {
+        return new GptBasedConductChecker(gptApiKey, codeOfConductProvider);
     }
 }
