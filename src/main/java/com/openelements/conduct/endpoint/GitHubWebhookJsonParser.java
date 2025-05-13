@@ -5,7 +5,8 @@ import java.net.URI;
 import java.util.Objects;
 import org.jspecify.annotations.NonNull;
 
-public class GithubWebhookJsonParser {
+public class GitHubWebhookJsonParser {
+
     static URI getIssueUrl(JsonNode jsonNode) {
         Objects.requireNonNull(jsonNode, "jsonNode must not be null");
         if (jsonNode.has("issue") && jsonNode.get("issue").has("html_url")) {

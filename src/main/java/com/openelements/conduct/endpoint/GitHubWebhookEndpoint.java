@@ -1,7 +1,7 @@
 package com.openelements.conduct.endpoint;
 
 import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.*;
-import static com.openelements.conduct.endpoint.GithubWebhookJsonParser.*;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,16 +19,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class GithubWebhookEndpoint {
+public class GitHubWebhookEndpoint {
 
-    private final static Logger log = LoggerFactory.getLogger(GithubWebhookEndpoint.class);
+    private final static Logger log = LoggerFactory.getLogger(GitHubWebhookEndpoint.class);
 
     public static final String HUB_EVENT = "X-GitHub-Event";
 
     private final WorkflowHandler workflowHandler;
 
     @Autowired
-    public GithubWebhookEndpoint(final @NonNull WorkflowHandler workflowHandler) {
+    public GitHubWebhookEndpoint(final @NonNull WorkflowHandler workflowHandler) {
         this.workflowHandler = Objects.requireNonNull(workflowHandler, "workflowHandler must not be null");
     }
 
