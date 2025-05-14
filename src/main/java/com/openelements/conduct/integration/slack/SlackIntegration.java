@@ -7,6 +7,7 @@ import com.slack.api.Slack;
 import com.slack.api.methods.MethodsClient;
 import com.slack.api.methods.SlackApiException;
 import com.slack.api.methods.request.chat.ChatPostMessageRequest;
+import com.slack.api.methods.response.chat.ChatPostMessageResponse;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +22,7 @@ public class SlackIntegration implements ResultHandler {
     private final MethodsClient slackClient;
     private final String channelId;
 
-    public SlackIntegration(@NonNull String slackToken, @NonNull String channelId) {
+    public SlackIntegration(@NonNull final String slackToken, @NonNull final String channelId) {
         Objects.requireNonNull(slackToken, "slackToken must not be null");
         this.channelId = Objects.requireNonNull(channelId, "channelId must not be null");
         if (channelId.isBlank()) {
@@ -29,10 +30,9 @@ public class SlackIntegration implements ResultHandler {
         }
         log.info("Initializing Slack integration");
         try {
-            Slack slack = Slack.getInstance();
+            final Slack slack = Slack.getInstance();
             this.slackClient = slack.methods(slackToken);
-            
-            // Send initialization notification
+
             sendInitializationMessage();
             log.info("Slack integration initialized successfully");
         } catch (Exception e) {
@@ -42,50 +42,62 @@ public class SlackIntegration implements ResultHandler {
     }
     
     private void sendInitializationMessage() {
-    try {
-        ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-                .channel(channelId)
-                .text("🚀 *Conduct Guardian* has been successfully connected to this Slack channel. " +
-                      "Code of conduct violations will be reported here.")
-                .build();
-
-        var response = slackClient.chatPostMessage(request);
-        if (!response.isOk()) {
-            log.error("Slack API Error: {}", response.getError());  // <-- this is key
-        } else {
-            log.info("Message posted to Slack successfully: {}", response.getMessage().getText());
+        try {
+            final ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+                    .channel(channelId)
+                    .text("🚀 *Conduct Guardian* has been successfully connected to this Slack channel. " +
+                          "Code of conduct violations will be reported here.")
+                    .build();
+            
+            final ChatPostMessageResponse response = slackClient.chatPostMessage(request);
+            if (!response.isOk()) {
+                log.error("Slack API Error: {}", response.getError());
+                throw new RuntimeException("Failed to send initialization message to Slack: " + response.getError());
+            } else {
+                log.info("Message posted to Slack successfully: {}", response.getMessage().getText());
+            }
+        } catch (Exception e) {
+            log.error("Could not send initialization message to Slack channel", e);
+            throw new RuntimeException("Failed to send initialization message to Slack", e);
         }
-    } catch (IOException | SlackApiException e) {
-        log.warn("Could not send initialization message to Slack channel", e);
     }
-}
-
 
     @Override
     public void handle(@NonNull CheckResult result) {
         Objects.requireNonNull(result, "result must not be null");
+
+        if (result.state() == ViolationState.NONE) {
+            log.debug("No violation found, not sending message to Slack");
+            return;
+        }
         
         final CompletableFuture<Void> future = new CompletableFuture<>();
         
-        String emoji = "✅";
-        if (result.state() == ViolationState.POSSIBLE_VIOLATION) {
-            emoji = "⚠️";
-        } else if (result.state() == ViolationState.VIOLATION) {
+        String emoji = "⚠️";
+        if (result.state() == ViolationState.VIOLATION) {
             emoji = "🚫";
         }
         
-        String message = String.format("%s Check result: %s, State: %s, Reason: %s",
+        String message = String.format("%s Check result: \n" +
+                "Link: %s\n" +
+                "State: %s\n" +
+                "Reason: %s",
                 emoji, result.message().link(), result.state(), result.reason());
         
         try {
-            ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+            final ChatPostMessageRequest request = ChatPostMessageRequest.builder()
                     .channel(channelId)
                     .text(message)
                     .build();
             
-            slackClient.chatPostMessage(request);
-            future.complete(null);
-        } catch (IOException | SlackApiException e) {
+            final ChatPostMessageResponse response = slackClient.chatPostMessage(request);
+            if (!response.isOk()) {
+                log.error("Slack API Error: {}", response.getError());
+                future.completeExceptionally(new RuntimeException("Slack API Error: " + response.getError()));
+            } else {
+                future.complete(null);
+            }
+        } catch (Exception e) {
             log.error("Error sending message to Slack", e);
             future.completeExceptionally(e);
         }
