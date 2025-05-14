@@ -8,16 +8,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(
-        name = "conductIntelligence.integration.discord.enabled",
+        name = "guardian.integration.discord.enabled",
         havingValue = "true",
         matchIfMissing = false
 )
 public class DicordConfig {
 
-    @Value("${conductIntelligence.integration.discord.token}")
+    @Value("${guardian.integration.discord.token}")
     private String discordToken;
 
-    @Value("${conductIntelligence.integration.discord.channelId}")
+    @Value("${guardian.integration.discord.channelId}")
     private String discordChannelId;
 
     @Bean

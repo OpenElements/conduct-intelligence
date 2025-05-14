@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(
-        name = "conductIntelligence.integration.log.enabled",
+        name = "guardian.integration.log.enabled",
         havingValue = "true",
         matchIfMissing = false
 )
