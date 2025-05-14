@@ -105,7 +105,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
             final JsonNode response = restClient.post()
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(requestNode.toPrettyString())
+                    .body(requestNode)
                     .retrieve()
                     .body(JsonNode.class);
 
