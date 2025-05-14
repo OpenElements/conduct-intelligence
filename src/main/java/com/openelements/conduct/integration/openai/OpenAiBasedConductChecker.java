@@ -1,4 +1,4 @@
-package com.openelements.conduct.integration.gpt;
+package com.openelements.conduct.integration.openai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,22 +20,27 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
-public class GptBasedConductChecker implements ConductChecker {
-
-    private final static Logger log = LoggerFactory.getLogger(GptBasedConductChecker.class);
+public class OpenAiBasedConductChecker implements ConductChecker {
 
     private final RestClient restClient;
 
-    private final String endpoint = "https://api.openai.com/v1/chat/completions";
+    private final String endpoint;
 
     private final CodeOfConductProvider codeOfConductProvider;
 
-    public GptBasedConductChecker(@NonNull final String apiKey, @NonNull final CodeOfConductProvider codeOfConductProvider) {
+    private final String model;
+
+    public OpenAiBasedConductChecker(@NonNull final String endpoint,
+            @NonNull final String apiKey,
+            @NonNull final String model,
+            @NonNull final CodeOfConductProvider codeOfConductProvider) {
         Objects.requireNonNull(apiKey, "apiKey must not be null");
-        this. codeOfConductProvider = Objects.requireNonNull(codeOfConductProvider, "codeOfConductProvider must not be null");
         if (apiKey.isBlank()) {
             throw new IllegalArgumentException("apiKey must not be blank");
         }
+        this.endpoint = Objects.requireNonNull(endpoint, "endpoint must not be null");
+        this.model = Objects.requireNonNull(model, "model must not be null");
+        this. codeOfConductProvider = Objects.requireNonNull(codeOfConductProvider, "codeOfConductProvider must not be null");
         this.restClient = RestClient.builder()
                 .baseUrl(endpoint)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
@@ -85,7 +90,7 @@ public class GptBasedConductChecker implements ConductChecker {
         Objects.requireNonNull(prompt, "prompt must not be null");
         try {
             final Map<String, Object> requestBody = Map.of(
-                    "model", "gpt-3.5-turbo",
+                    "model", model,
                     "messages", List.of(
                             Map.of("role", "user", "content", prompt)
                     )

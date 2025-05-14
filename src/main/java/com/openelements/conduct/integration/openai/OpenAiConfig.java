@@ -1,4 +1,4 @@
-package com.openelements.conduct.integration.gpt;
+package com.openelements.conduct.integration.openai;
 
 import com.openelements.conduct.data.CodeOfConductProvider;
 import com.openelements.conduct.data.ConductChecker;
@@ -14,13 +14,19 @@ import org.springframework.context.annotation.Configuration;
         havingValue = "true",
         matchIfMissing = false
 )
-public class GptConfig {
+public class OpenAiConfig {
 
-    @Value("${conductIntelligence.integration.gpt.apiKey}")
-    private String gptApiKey;
+    @Value("${conductIntelligence.integration.openai.apiKey}")
+    private String apiKey;
+
+    @Value("${conductIntelligence.integration.openai.model:gpt-3.5-turbo}")
+    private String model;
+
+    @Value("${conductIntelligence.integration.openai.endpoint:https://api.openai.com/v1/chat/completions}")
+    private String endpoint;
 
     @Bean
     ConductChecker gptBasedConductChecker(@NonNull final CodeOfConductProvider codeOfConductProvider) {
-        return new GptBasedConductChecker(gptApiKey, codeOfConductProvider);
+        return new OpenAiBasedConductChecker(endpoint, apiKey, model, codeOfConductProvider);
     }
 }
