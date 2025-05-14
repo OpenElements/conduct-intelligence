@@ -1,0 +1,25 @@
+{
+  id=chatcmpl-BWj8NM2o7JHqLeBcxhUS1TaN5QZRQ,
+  object=chat.completion,
+  created=1747139691,
+  model=gpt-3.5-turbo-0125,
+  choices=[
+  {
+    index=0,
+    message=
+  {
+    role=assistant,
+    content=
+  {
+    "result": "POSSIBLE_VIOLATION",
+    "reason": "The message contains a derogatory comment ('stupid') towards an individual, which could be considered disrespectful and potentially violating the code of conduct's standards of demonstrating empathy and kindness towards others, being respectful, and avoiding derogatory comments."
+  },
+  refusal=null,
+  annotations=
+  []
+  },
+  logprobs=null,
+  finish_reason=stop
+  }
+], usage={prompt_tokens=1114, completion_tokens=67, total_tokens=1181, prompt_tokens_details={cached_tokens=0, audio_tokens=0}, completion_tokens_details={reasoning_tokens=0, audio_tokens=0, accepted_prediction_tokens=0, rejected_prediction_tokens=0}}, service_tier=default, system_fingerprint=null
+}
