@@ -1,5 +1,7 @@
 package com.openelements.conduct.integration.gpt;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openelements.conduct.data.CheckResult;
 import com.openelements.conduct.data.CodeOfConductProvider;
 import com.openelements.conduct.data.ConductChecker;
@@ -9,6 +11,8 @@ import com.openelements.conduct.data.ViolationState;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,24 +68,45 @@ public class GptBasedConductChecker implements ConductChecker {
 
     @Override
     public @NonNull CheckResult check(@NonNull Message message) {
-        Objects.requireNonNull(message, "message must not be null");
         final String prompt = createPrompt(message);
-        final Map<String, Object> requestBody = Map.of(
-                "model", "gpt-3.5-turbo",
-                "messages", List.of(
-                        Map.of("role", "user", "content", prompt)
-                )
-        );
+            JsonNode jsonNode = calOpenAIEndpoint(prompt);
+            final String result = jsonNode.get("result").asText();
+            final String reason = jsonNode.get("reason").asText();
+            ViolationState violationState = ViolationState.valueOf(result);
+            return new CheckResult(
+                    message,
+                    violationState,
+                    reason
+            );
+    }
 
-        final Map<String, Object> response = restClient.post()
-                .body(requestBody)
-                .retrieve()
-                .body(Map.class);
-        log.info("Response: {}", response);
-        return new CheckResult(
-                message,
-                ViolationState.NONE,
-                "UNKNOWN"
-        );
+    @Nullable
+    private JsonNode calOpenAIEndpoint(@NotNull String prompt) {
+        Objects.requireNonNull(prompt, "prompt must not be null");
+        try {
+            final Map<String, Object> requestBody = Map.of(
+                    "model", "gpt-3.5-turbo",
+                    "messages", List.of(
+                            Map.of("role", "user", "content", prompt)
+                    )
+            );
+            final Map<String, Object> response = restClient.post()
+                    .body(requestBody)
+                    .retrieve()
+                    .body(Map.class);
+
+            final List<Map<String, Object>> choices = (List<Map<String, Object>>) response.get("choices");
+            if (choices != null && !choices.isEmpty()) {
+                final Map<String, Object> messageMap = (Map<String, Object>) choices.get(0).get("message");
+                final String content = (String) messageMap.get("content");
+                final ObjectMapper objectMapper = new ObjectMapper();
+                final JsonNode jsonNode = objectMapper.readTree(content);
+                return jsonNode;
+            } else {
+                throw new IllegalStateException("No choices found in the response");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error calling OpenAI API", e);
+        }
     }
 }
