@@ -8,16 +8,16 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(
-        name = "conductIntelligence.integration.slack.enabled",
+        name = "guardian.integration.slack.enabled",
         havingValue = "true",
         matchIfMissing = false
 )
 public class SlackConfig {
 
-    @Value("${conductIntelligence.integration.slack.token}")
+    @Value("${guardian.integration.slack.token}")
     private String slackToken;
 
-    @Value("${conductIntelligence.integration.slack.channelId}")
+    @Value("${guardian.integration.slack.channelId}")
     private String slackChannelId;
 
     @Bean
