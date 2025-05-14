@@ -42,19 +42,24 @@ public class SlackIntegration implements ResultHandler {
     }
     
     private void sendInitializationMessage() {
-        try {
-            ChatPostMessageRequest request = ChatPostMessageRequest.builder()
-                    .channel(channelId)
-                    .text("🚀 *Conduct Guardian* has been successfully connected to this Slack channel. " +
-                          "Code of conduct violations will be reported here.")
-                    .build();
-            
-            slackClient.chatPostMessage(request);
-        } catch (IOException | SlackApiException e) {
-            log.warn("Could not send initialization message to Slack channel", e);
-            // Don't throw exception here - we want the integration to continue even if the init message fails
+    try {
+        ChatPostMessageRequest request = ChatPostMessageRequest.builder()
+                .channel(channelId)
+                .text("🚀 *Conduct Guardian* has been successfully connected to this Slack channel. " +
+                      "Code of conduct violations will be reported here.")
+                .build();
+
+        var response = slackClient.chatPostMessage(request);
+        if (!response.isOk()) {
+            log.error("Slack API Error: {}", response.getError());  // <-- this is key
+        } else {
+            log.info("Message posted to Slack successfully: {}", response.getMessage().getText());
         }
+    } catch (IOException | SlackApiException e) {
+        log.warn("Could not send initialization message to Slack channel", e);
     }
+}
+
 
     @Override
     public void handle(@NonNull CheckResult result) {
