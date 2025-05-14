@@ -123,9 +123,12 @@ public class OpenAiBasedConductChecker implements ConductChecker {
                     .POST(HttpRequest.BodyPublishers.ofString(requestNode.toPrettyString()))
                     .build();
             final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            final JsonNode responseNode = objectMapper.readTree(response.body());
-
+            final String responseBody = response.body();
+            log.info("Response from OpenAI API: {}", responseBody);
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException("Error calling OpenAI API: " + responseBody);
+            }
+            final JsonNode responseNode = objectMapper.readTree(responseBody);
             if (responseNode == null) {
                 throw new IllegalStateException("Response from OpenAI API is null");
             }
