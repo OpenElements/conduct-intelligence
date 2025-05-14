@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(
-        name = "conductIntelligence.integration.coc.file.enabled",
+        name = "guardian.integration.coc.file.enabled",
         havingValue = "true",
         matchIfMissing = false
 )

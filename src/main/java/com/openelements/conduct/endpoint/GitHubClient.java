@@ -20,7 +20,7 @@ public class GitHubClient {
 
     private final static Logger log = LoggerFactory.getLogger(GitHubClient.class);
 
-    @Value("${conductIntelligence.integration.github.token}")
+    @Value("${guardian.integration.github.token}")
     private String token;
 
     public Set<String> getAllUsersForOrg(final @NonNull String orgName) {

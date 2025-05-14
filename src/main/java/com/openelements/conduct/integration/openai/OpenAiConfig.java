@@ -10,19 +10,19 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConditionalOnProperty(
-        name = "conductIntelligence.integration.gpt.enabled",
+        name = "guardian.integration.openai.enabled",
         havingValue = "true",
         matchIfMissing = false
 )
 public class OpenAiConfig {
 
-    @Value("${conductIntelligence.integration.openai.apiKey}")
+    @Value("${guardian.integration.openai.apiKey}")
     private String apiKey;
 
-    @Value("${conductIntelligence.integration.openai.model:gpt-3.5-turbo}")
+    @Value("${guardian.integration.openai.model:gpt-3.5-turbo}")
     private String model;
 
-    @Value("${conductIntelligence.integration.openai.endpoint:https://api.openai.com/v1/chat/completions}")
+    @Value("${guardian.integration.openai.endpoint:https://api.openai.com/v1/chat/completions}")
     private String endpoint;
 
     @Bean
