@@ -109,7 +109,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
 
             final JsonNode response = restClient.post()
-                    .body(requestNode)
+                    .body(outputStream -> outputStream.write(requestNode.toPrettyString().getBytes()))
                     .retrieve()
                     .body(JsonNode.class);
 
