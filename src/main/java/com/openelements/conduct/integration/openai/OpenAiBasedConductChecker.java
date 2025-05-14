@@ -10,6 +10,10 @@ import com.openelements.conduct.data.ConductChecker;
 import com.openelements.conduct.data.Message;
 import com.openelements.conduct.data.TextfileType;
 import com.openelements.conduct.data.ViolationState;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +32,8 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
     private final String endpoint;
 
+    private final String apiKey;
+
     private final CodeOfConductProvider codeOfConductProvider;
 
     private final String model;
@@ -36,7 +42,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             @NonNull final String apiKey,
             @NonNull final String model,
             @NonNull final CodeOfConductProvider codeOfConductProvider) {
-        Objects.requireNonNull(apiKey, "apiKey must not be null");
+        this.apiKey = Objects.requireNonNull(apiKey, "apiKey must not be null");
         if (apiKey.isBlank()) {
             throw new IllegalArgumentException("apiKey must not be blank");
         }
@@ -108,18 +114,25 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
             log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
 
-            final JsonNode response = restClient.post()
-                    .body(outputStream -> outputStream.write(requestNode.toPrettyString().getBytes()))
-                    .retrieve()
-                    .body(JsonNode.class);
+            final HttpClient httpClient = HttpClient.newBuilder()
+                    .build();
+            final HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestNode.toPrettyString()))
+                    .build();
+            final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response == null) {
+            final JsonNode responseNode = objectMapper.readTree(response.body());
+
+            if (responseNode == null) {
                 throw new IllegalStateException("Response from OpenAI API is null");
             }
-            if (!response.has("choices")) {
+            if (!responseNode.has("choices")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'choices'");
             }
-            final JsonNode choicesNode = response.get("choices");
+            final JsonNode choicesNode = responseNode.get("choices");
             if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() == 0) {
                 throw new IllegalStateException("Response from OpenAI API does not contain valid 'choices'");
             }
