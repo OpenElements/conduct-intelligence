@@ -10,6 +10,11 @@ import com.openelements.conduct.data.ConductChecker;
 import com.openelements.conduct.data.Message;
 import com.openelements.conduct.data.TextfileType;
 import com.openelements.conduct.data.ViolationState;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,6 +33,8 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
     private final String endpoint;
 
+    private final String apiKey;
+
     private final CodeOfConductProvider codeOfConductProvider;
 
     private final String model;
@@ -36,7 +43,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             @NonNull final String apiKey,
             @NonNull final String model,
             @NonNull final CodeOfConductProvider codeOfConductProvider) {
-        Objects.requireNonNull(apiKey, "apiKey must not be null");
+        this.apiKey = Objects.requireNonNull(apiKey, "apiKey must not be null");
         if (apiKey.isBlank()) {
             throw new IllegalArgumentException("apiKey must not be blank");
         }
@@ -108,18 +115,28 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
             log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
 
-            final JsonNode response = restClient.post()
-                    .body(requestNode)
-                    .retrieve()
-                    .body(JsonNode.class);
-
-            if (response == null) {
+            final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_1_1)
+                    .build();
+            final HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(endpoint))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
+                    .header(HttpHeaders.CONTENT_TYPE, "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestNode.toString()))
+                    .build();
+            final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            final String responseBody = response.body();
+            log.info("Response from OpenAI API: {}", responseBody);
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException("Error calling OpenAI API: " + responseBody);
+            }
+            final JsonNode responseNode = objectMapper.readTree(responseBody);
+            if (responseNode == null) {
                 throw new IllegalStateException("Response from OpenAI API is null");
             }
-            if (!response.has("choices")) {
+            if (!responseNode.has("choices")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'choices'");
             }
-            final JsonNode choicesNode = response.get("choices");
+            final JsonNode choicesNode = responseNode.get("choices");
             if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() == 0) {
                 throw new IllegalStateException("Response from OpenAI API does not contain valid 'choices'");
             }
@@ -133,7 +150,11 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             if (!firstChoice.get("message").has("content")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'content'");
             }
-            return firstChoice.get("message").get("content");
+            final String resultAsText = firstChoice.get("message").get("content").asText();
+            if (resultAsText.startsWith("```json") && resultAsText.endsWith("```")) {
+                return objectMapper.readTree(resultAsText.substring(7, resultAsText.length() - 3).trim());
+            }
+            return objectMapper.readTree(resultAsText);
         } catch (Exception e) {
             throw new RuntimeException("Error calling OpenAI API", e);
         }
