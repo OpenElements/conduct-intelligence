@@ -6,12 +6,14 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class ApplicationConfig {
 
     @Bean
-    WorkflowHandler workflowHandler(@NonNull final ConductChecker conductChecker, @NonNull final ResultHandler resultHandler) {
-        return new WorkflowHandler(conductChecker, resultHandler);
+    WorkflowHandler workflowHandler(@NonNull final ConductChecker conductChecker, @NonNull final List<ResultHandler> resultHandlers) {
+        return new WorkflowHandler(conductChecker, resultHandlers);
     }
 
 }
