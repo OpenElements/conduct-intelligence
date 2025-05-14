@@ -44,6 +44,10 @@ public class OpenAiBasedConductChecker implements ConductChecker {
         this.model = Objects.requireNonNull(model, "model must not be null");
         this.codeOfConductProvider = Objects.requireNonNull(codeOfConductProvider,
                 "codeOfConductProvider must not be null");
+
+        log.info("Using OpenAI API with model: {}", model);
+        log.info("Using OpenAI API with endpoint: {}", endpoint);
+
         this.restClient = RestClient.builder()
                 .baseUrl(endpoint)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
@@ -105,7 +109,6 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
 
             final JsonNode response = restClient.post()
-                    .contentType(MediaType.APPLICATION_JSON)
                     .body(requestNode)
                     .retrieve()
                     .body(JsonNode.class);
