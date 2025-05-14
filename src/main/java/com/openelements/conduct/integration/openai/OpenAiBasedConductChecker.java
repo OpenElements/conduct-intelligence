@@ -12,6 +12,7 @@ import com.openelements.conduct.data.TextfileType;
 import com.openelements.conduct.data.ViolationState;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Objects;
@@ -114,13 +115,13 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
             log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
 
-            final HttpClient httpClient = HttpClient.newBuilder()
+            final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_1_1)
                     .build();
             final HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(endpoint))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                     .header(HttpHeaders.CONTENT_TYPE, "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(requestNode.toPrettyString()))
+                    .POST(HttpRequest.BodyPublishers.ofString(requestNode.toString()))
                     .build();
             final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             final String responseBody = response.body();
@@ -149,7 +150,11 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             if (!firstChoice.get("message").has("content")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'content'");
             }
-            return firstChoice.get("message").get("content");
+            final String resultAsText = firstChoice.get("message").get("content").asText();
+            if (resultAsText.startsWith("```json") && resultAsText.endsWith("```")) {
+                return objectMapper.readTree(resultAsText.substring(7, resultAsText.length() - 3).trim());
+            }
+            return objectMapper.readTree(resultAsText);
         } catch (Exception e) {
             throw new RuntimeException("Error calling OpenAI API", e);
         }
