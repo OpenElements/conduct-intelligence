@@ -10,8 +10,6 @@ import com.openelements.conduct.data.ConductChecker;
 import com.openelements.conduct.data.Message;
 import com.openelements.conduct.data.TextfileType;
 import com.openelements.conduct.data.ViolationState;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +42,8 @@ public class OpenAiBasedConductChecker implements ConductChecker {
         }
         this.endpoint = Objects.requireNonNull(endpoint, "endpoint must not be null");
         this.model = Objects.requireNonNull(model, "model must not be null");
-        this. codeOfConductProvider = Objects.requireNonNull(codeOfConductProvider, "codeOfConductProvider must not be null");
+        this.codeOfConductProvider = Objects.requireNonNull(codeOfConductProvider,
+                "codeOfConductProvider must not be null");
         this.restClient = RestClient.builder()
                 .baseUrl(endpoint)
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
@@ -54,9 +53,9 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
     private String createPrompt(@NonNull Message message) {
         Objects.requireNonNull(message, "message must not be null");
-        if(codeOfConductProvider.supports(TextfileType.MARKDOWN)) {
+        if (codeOfConductProvider.supports(TextfileType.MARKDOWN)) {
             String codeOfConduct = codeOfConductProvider.getCodeOfConduct(TextfileType.MARKDOWN);
-            return  """
+            return """
                     You are a code of conduct checker for an open source project.
                     Your task is to check if the following message violates the code of conduct of the project.
                     
@@ -76,21 +75,21 @@ public class OpenAiBasedConductChecker implements ConductChecker {
     }
 
     @Override
-    public @NonNull CheckResult check(@NonNull Message message) {
+    public @NonNull CheckResult check(@NonNull final Message message) {
         final String prompt = createPrompt(message);
-            JsonNode jsonNode = calOpenAIEndpoint(prompt);
-            final String result = jsonNode.get("result").asText();
-            final String reason = jsonNode.get("reason").asText();
-            ViolationState violationState = ViolationState.valueOf(result);
-            return new CheckResult(
-                    message,
-                    violationState,
-                    reason
-            );
+        final JsonNode jsonNode = calOpenAIEndpoint(prompt);
+        final String result = jsonNode.get("result").asText();
+        final String reason = jsonNode.get("reason").asText();
+        final ViolationState violationState = ViolationState.valueOf(result);
+        return new CheckResult(
+                message,
+                violationState,
+                reason
+        );
     }
 
     @Nullable
-    private JsonNode calOpenAIEndpoint(@NotNull String prompt) {
+    private JsonNode calOpenAIEndpoint(@NotNull final String prompt) {
         Objects.requireNonNull(prompt, "prompt must not be null");
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
@@ -115,14 +114,14 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             if (!response.has("choices")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'choices'");
             }
-            JsonNode choicesNode = response.get("choices");
+            final JsonNode choicesNode = response.get("choices");
             if (choicesNode == null || !choicesNode.isArray() || choicesNode.size() == 0) {
                 throw new IllegalStateException("Response from OpenAI API does not contain valid 'choices'");
             }
             if (choicesNode.size() > 1) {
                 log.warn("Warning: More than one choice found in the response. Using the first one.");
             }
-            JsonNode firstChoice = choicesNode.get(0);
+            final JsonNode firstChoice = choicesNode.get(0);
             if (!firstChoice.has("message")) {
                 throw new IllegalStateException("Response from OpenAI API does not contain 'message'");
             }
