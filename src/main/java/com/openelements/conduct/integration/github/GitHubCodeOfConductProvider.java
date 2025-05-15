@@ -99,8 +99,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
     @Override
     public @NonNull String getCodeOfConduct(@NonNull TextfileType type) {
         Objects.requireNonNull(type, "type must not be null");
-        
-        // Check if we have a valid cached content
+
         if (contentCache.containsKey(type)) {
             CachedContent cachedContent = contentCache.get(type);
             if (!cachedContent.isExpired()) {
@@ -117,10 +116,9 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
             
             if (fileContent != null && fileContent.has("content")) {
                 String content = fileContent.get("content").asText();
-                // GitHub API returns Base64 encoded content
+
                 String decodedContent = new String(Base64.getDecoder().decode(content.replace("\n", "")));
-                
-                // Cache the content
+
                 contentCache.put(type, new CachedContent(decodedContent, System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(cacheExpirationMinutes)));
                 
                 return decodedContent;
@@ -133,9 +131,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
         }
     }
     
-    /**
-     * Clears the content cache, forcing the provider to fetch fresh content from GitHub.
-     */
+
     public void clearCache() {
         contentCache.clear();
         log.info("Cleared Code of Conduct content cache");
