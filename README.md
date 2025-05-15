@@ -30,11 +30,49 @@ All flagged content should be reviewed by maintainers before action is taken.
 
 ## 🛠️ Installation and Usage
 
-TODO
+The app is based on Java 21, Spring Boot and can be run as a standalone application or deployed to a cloud service.
+We use Maven for dependency management and building the project.
+Since we run the app in Coolify, a nixpacks-based environment, we provide a `nixpacks.toml` for run the app.
 
-### Nixpacks
+### Prerequisites
 
-TODO
+In general only Java 21 is needed to build and run the app.
+We highly recommend using [Eclipse Temurin](https://adoptium.net/de/) as Java distribution.
+Since the project is using the Maven Wrapper, you don't need to install Maven separately.
+
+### Build
+
+To build the project, run the following command in the root directory:
+```bash
+./mvnw verify
+```
+
+This will compile the code, run (the not existing) tests, and package the application into a JAR file.
+
+### Run
+
+To run the application, use the following command:
+```bash
+./mvnw spring-boot:run
+```
+
+This will start the application on the default port (8080).
+Internally the Maven plugin of Spring Boot will build the project and run the main class.
+
+### Configuration
+
+You can not really run the application without configuration.
+The application provide several services for the following tasks:
+
+- Receive Code of Conduct
+- Check Message against Code of Conduct
+- Send Notification
+
+You will find a basic configuration in the `src/main/resources/application.properties` file.
+Most of the configuration is done via environment variables.
+Here the best is to create a `.env` file in the root directory and add your configuration there.
+Such file is already added to the `.gitignore` file.
+You can add your secrets there without worrying about them being pushed to GitHub.
 
 ## 📄 License
 
