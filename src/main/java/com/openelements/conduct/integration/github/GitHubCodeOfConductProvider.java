@@ -67,7 +67,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
                                       @NonNull String owner, 
                                       @NonNull String repo, 
                                       String branch) {
-        this(gitHubClient, owner, repo, branch, 60); // Default cache expiration of 60 minutes
+        this(gitHubClient, owner, repo, branch, 60);
     }
 
     @Override
