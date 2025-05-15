@@ -23,11 +23,9 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
     private final String owner;
     private final String repo;
     private final String branch;
-    
-    // Cache for Code of Conduct content to avoid frequent API calls
+
     private final ConcurrentHashMap<TextfileType, CachedContent> contentCache = new ConcurrentHashMap<>();
-    
-    // Cache expiration time in minutes
+
     private final long cacheExpirationMinutes;
 
     private static final String DEFAULT_BRANCH = "main";
