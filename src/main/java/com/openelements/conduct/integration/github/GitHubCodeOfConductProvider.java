@@ -73,8 +73,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
     @Override
     public boolean supports(@NonNull TextfileType type) {
         Objects.requireNonNull(type, "type must not be null");
-        
-        // Check if we have a valid cached result
+
         if (contentCache.containsKey(type)) {
             CachedContent cachedContent = contentCache.get(type);
             if (!cachedContent.isExpired()) {
