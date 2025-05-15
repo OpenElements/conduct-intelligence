@@ -80,18 +80,15 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
                 return true;
             }
         }
-        
-        // We primarily support Markdown for GitHub repositories
+
         if (type == TextfileType.MARKDOWN) {
             return findCodeOfConductFile().isPresent();
         }
-        
-        // We can also support plain text
+
         if (type == TextfileType.PLAIN) {
             return findCodeOfConductFile().isPresent();
         }
-        
-        // HTML is less common but possible
+
         if (type == TextfileType.HTML) {
             return findCodeOfConductFile().isPresent();
         }
