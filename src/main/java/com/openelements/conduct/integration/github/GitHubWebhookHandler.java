@@ -16,10 +16,6 @@ import com.openelements.conduct.data.CodeOfConductProvider;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Webhook handler for GitHub events related to Code of Conduct changes.
- * This allows the cache to be refreshed when the Code of Conduct file is updated.
- */
 @RestController
 @ConditionalOnBean(GitHubCodeOfConductProvider.class)
 public class GitHubWebhookHandler {
@@ -55,10 +51,9 @@ public class GitHubWebhookHandler {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonPayload = objectMapper.readTree(payload);
-            
-            // Check if this is a push event
+
             if ("push".equals(event)) {
-                // Check if any of the modified files is a Code of Conduct file
+
                 if (jsonPayload.has("commits") && jsonPayload.get("commits").isArray()) {
                     for (JsonNode commit : jsonPayload.get("commits")) {
                         if (isCodeOfConductFileModified(commit)) {
@@ -77,7 +72,7 @@ public class GitHubWebhookHandler {
     }
     
     private boolean isCodeOfConductFileModified(JsonNode commit) {
-        // Check modified files
+
         if (commit.has("modified") && commit.get("modified").isArray()) {
             for (JsonNode file : commit.get("modified")) {
                 String filename = file.asText().toLowerCase();
@@ -90,8 +85,7 @@ public class GitHubWebhookHandler {
                 }
             }
         }
-        
-        // Check added files
+
         if (commit.has("added") && commit.get("added").isArray()) {
             for (JsonNode file : commit.get("added")) {
                 String filename = file.asText().toLowerCase();
