@@ -15,13 +15,13 @@ import org.springframework.context.annotation.Configuration;
 )
 public class GitHubConfig {
 
-    @Value("${guardian.integration.github.coc.owner:#{null}}")
+    @Value("${guardian.integration.github.coc.owner:OpenElements}")
     private String owner;
 
-    @Value("${guardian.integration.github.coc.repo:#{null}}")
+    @Value("${guardian.integration.github.coc.repo:Conduct-Guardian}")
     private String repo;
 
-    @Value("${guardian.integration.github.coc.branch:#{null}}")
+    @Value("${guardian.integration.github.coc.branch:main}")
     private String branch;
     
     @Value("${guardian.integration.github.coc.cache-expiration-minutes:60}")

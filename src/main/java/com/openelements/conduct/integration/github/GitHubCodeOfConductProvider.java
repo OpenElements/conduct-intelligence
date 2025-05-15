@@ -173,6 +173,19 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
                 log.debug("Code of Conduct file not found in .github folder for {}/{}", owner, repo);
             }
             
+            // Try to check if there's an organization-level Code of Conduct
+            if (!owner.equals("OpenElements")) {
+                try {
+                    // Check if the organization has a .github repository with a CODE_OF_CONDUCT.md file
+                    JsonNode fileContent = gitHubClient.getRepositoryFileContent(owner, ".github", "CODE_OF_CONDUCT.md", "main");
+                    if (fileContent != null && fileContent.has("content")) {
+                        log.debug("Found organization-level Code of Conduct file in {}'s .github repository", owner);
+                        return Optional.of("CODE_OF_CONDUCT.md");
+                    }
+                } catch (Exception e) {
+                    log.debug("Organization-level Code of Conduct file not found for {}", owner);
+                }
+            }
             
             log.warn("No Code of Conduct file found in repository {}/{}", owner, repo);
             return Optional.empty();

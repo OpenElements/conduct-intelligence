@@ -7,10 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configuration for the fallback Code of Conduct provider.
- * This will only be used if no other CodeOfConductProvider implementations are available.
- */
+
 @Configuration
 public class FallbackCodeOfConductConfig {
 

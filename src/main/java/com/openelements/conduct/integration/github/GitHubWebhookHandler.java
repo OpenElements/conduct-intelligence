@@ -13,6 +13,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openelements.conduct.data.CodeOfConductProvider;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Webhook handler for GitHub events related to Code of Conduct changes.
  * This allows the cache to be refreshed when the Code of Conduct file is updated.
@@ -23,23 +26,28 @@ public class GitHubWebhookHandler {
     
     private static final Logger log = LoggerFactory.getLogger(GitHubWebhookHandler.class);
     
-    private final GitHubCodeOfConductProvider codeOfConductProvider;
+    private final Optional<GitHubCodeOfConductProvider> codeOfConductProvider;
     
     @Autowired
-    public GitHubWebhookHandler(CodeOfConductProvider codeOfConductProvider) {
-        if (codeOfConductProvider instanceof GitHubCodeOfConductProvider) {
-            this.codeOfConductProvider = (GitHubCodeOfConductProvider) codeOfConductProvider;
+    public GitHubWebhookHandler(Optional<List<CodeOfConductProvider>> providers) {
+        if (providers.isPresent()) {
+            this.codeOfConductProvider = providers.get().stream()
+                    .filter(p -> p instanceof GitHubCodeOfConductProvider)
+                    .map(p -> (GitHubCodeOfConductProvider) p)
+                    .findFirst();
         } else {
-            this.codeOfConductProvider = null;
-            log.warn("GitHubWebhookHandler initialized with non-GitHub CodeOfConductProvider: {}", 
-                    codeOfConductProvider.getClass().getName());
+            this.codeOfConductProvider = Optional.empty();
+        }
+        
+        if (codeOfConductProvider.isEmpty()) {
+            log.warn("GitHubWebhookHandler initialized but no GitHubCodeOfConductProvider is available");
         }
     }
     
     @PostMapping("/github/coc-webhook")
     public void handleWebhook(@RequestHeader("X-GitHub-Event") String event, 
                              @RequestBody String payload) {
-        if (codeOfConductProvider == null) {
+        if (codeOfConductProvider.isEmpty()) {
             log.warn("Received GitHub webhook but no GitHubCodeOfConductProvider is available");
             return;
         }
@@ -55,7 +63,7 @@ public class GitHubWebhookHandler {
                     for (JsonNode commit : jsonPayload.get("commits")) {
                         if (isCodeOfConductFileModified(commit)) {
                             log.info("Code of Conduct file was modified, clearing cache");
-                            codeOfConductProvider.clearCache();
+                            codeOfConductProvider.get().clearCache();
                             return;
                         }
                     }
