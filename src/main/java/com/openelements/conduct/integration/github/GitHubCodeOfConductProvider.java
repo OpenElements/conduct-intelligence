@@ -173,29 +173,6 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
                 log.debug("Code of Conduct file not found in .github folder for {}/{}", owner, repo);
             }
             
-            // Try to check if there's a community profile with a Code of Conduct
-            try {
-                JsonNode communityProfile = gitHubClient.executeGet(new java.net.URI("https://api.github.com/repos/" + owner + "/" + repo + "/community/profile"));
-                if (communityProfile != null && communityProfile.has("files") && 
-                    communityProfile.get("files").has("code_of_conduct") && 
-                    !communityProfile.get("files").get("code_of_conduct").isNull()) {
-                    
-                    JsonNode cocInfo = communityProfile.get("files").get("code_of_conduct");
-                    if (cocInfo.has("url")) {
-                        String url = cocInfo.get("url").asText();
-                        log.debug("Found Code of Conduct in community profile: {}", url);
-                        // The URL points to the API endpoint for the Code of Conduct
-                        // We need to extract the path from the URL
-                        String[] parts = url.split("/");
-                        if (parts.length > 0) {
-                            String filename = parts[parts.length - 1];
-                            return Optional.of(filename);
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                log.debug("Could not check community profile for Code of Conduct", e);
-            }
             
             log.warn("No Code of Conduct file found in repository {}/{}", owner, repo);
             return Optional.empty();
