@@ -139,7 +139,6 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
     
     private Optional<String> findCodeOfConductFile() {
         try {
-            // Try to find the Code of Conduct file in the repository
             for (String filename : COMMON_COC_FILENAMES) {
                 try {
                     JsonNode fileContent = gitHubClient.getRepositoryFileContent(owner, repo, filename, branch);
@@ -148,13 +147,11 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
                         return Optional.of(filename);
                     }
                 } catch (Exception e) {
-                    // File not found, try next filename
+
                     log.debug("Code of Conduct file {} not found in {}/{}", filename, owner, repo);
                 }
             }
-            
-            // If we couldn't find a file with the common names, try to check if the repository
-            // has a .github folder with a CODE_OF_CONDUCT.md file
+
             try {
                 JsonNode fileContent = gitHubClient.getRepositoryFileContent(owner, repo, ".github/CODE_OF_CONDUCT.md", branch);
                 if (fileContent != null && fileContent.has("content")) {
@@ -164,8 +161,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
             } catch (Exception e) {
                 log.debug("Code of Conduct file not found in .github folder for {}/{}", owner, repo);
             }
-            
-            // Try to check if there's an organization-level Code of Conduct
+
             if (!owner.equals("OpenElements")) {
                 try {
                     // Check if the organization has a .github repository with a CODE_OF_CONDUCT.md file
