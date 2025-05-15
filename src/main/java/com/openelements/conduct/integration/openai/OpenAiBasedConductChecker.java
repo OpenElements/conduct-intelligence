@@ -113,7 +113,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             messagesNode.add(messageNode);
             requestNode.set("messages", messagesNode);
 
-            log.info("Request to OpenAI API: {}", requestNode.toPrettyString());
+            log.debug("Request to OpenAI API: {}", requestNode.toPrettyString());
 
             final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_1_1)
                     .build();
@@ -125,7 +125,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
                     .build();
             final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             final String responseBody = response.body();
-            log.info("Response from OpenAI API: {}", responseBody);
+            log.debug("Response from OpenAI API: {}", responseBody);
             if (response.statusCode() != 200) {
                 throw new IllegalStateException("Error calling OpenAI API: " + responseBody);
             }

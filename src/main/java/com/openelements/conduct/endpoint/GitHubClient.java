@@ -32,7 +32,7 @@ public class GitHubClient {
             final URI uri = new URI("https://api.github.com/orgs/" + orgName + "/members");
             final JsonNode node = executeGet(uri);
             Set<String> result = Set.of(node.findValuesAsText("login").toArray(new String[0]));
-            log.info("Fetched {} users for organization: {}", result.size(), result);
+            log.debug("Fetched {} users for organization: {}", result.size(), result);
             return result;
         } catch (Exception e) {
             throw new RuntimeException("Error fetching users for org: " + orgName, e);
@@ -107,7 +107,6 @@ public class GitHubClient {
                             throw new RuntimeException("Failed to fetch discussion content: " + response.statusCode());
                         }
                     }).get(10, TimeUnit.SECONDS);
-            System.out.println(body);
         } catch (Exception e) {
             throw new RuntimeException("Error executing POST request to " + uri, e);
         }

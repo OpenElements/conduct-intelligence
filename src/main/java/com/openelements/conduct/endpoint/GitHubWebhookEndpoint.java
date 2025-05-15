@@ -1,7 +1,21 @@
 package com.openelements.conduct.endpoint;
 
-import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.*;
-import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.*;
+import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.DISCUSSION_COMMENT_CREATED;
+import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.ISSUE_COMMENT_CREATED;
+import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.ISSUE_CREATED;
+import static com.openelements.conduct.endpoint.GitHubWebhookEventTypes.PR_CREATED;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getAction;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getComment;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getCommentUrl;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getDiscussionText;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getDiscussionTitle;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getDiscussionUrl;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getIssueText;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getIssueTitle;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getIssueUrl;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getPullRequestText;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getPullRequestTitle;
+import static com.openelements.conduct.endpoint.GitHubWebhookJsonParser.getPullRequestUrl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -34,7 +48,11 @@ public class GitHubWebhookEndpoint {
 
     @PostMapping("/github/webhook")
     public void onGitHubEvent(@RequestHeader(HUB_EVENT) String eventType, @RequestBody String body) {
-        log.info("Received GitHub event of type '{}': {}", eventType, body);
+        if (log.isDebugEnabled()) {
+            log.debug("Received GitHub event of type '{}': {}", eventType, body);
+        } else {
+            log.info("Received GitHub event of type '{}'", eventType);
+        }
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
             final JsonNode jsonNode = objectMapper.readTree(body);
