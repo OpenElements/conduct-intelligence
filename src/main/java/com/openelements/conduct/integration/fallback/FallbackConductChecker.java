@@ -8,10 +8,6 @@ import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A fallback implementation of ConductChecker that always returns NONE violation state.
- * This is used when no other ConductChecker implementations are available.
- */
 public class FallbackConductChecker implements ConductChecker {
 
     private static final Logger log = LoggerFactory.getLogger(FallbackConductChecker.class);
