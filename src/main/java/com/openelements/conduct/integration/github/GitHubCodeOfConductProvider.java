@@ -164,7 +164,6 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
 
             if (!owner.equals("OpenElements")) {
                 try {
-                    // Check if the organization has a .github repository with a CODE_OF_CONDUCT.md file
                     JsonNode fileContent = gitHubClient.getRepositoryFileContent(owner, ".github", "CODE_OF_CONDUCT.md", "main");
                     if (fileContent != null && fileContent.has("content")) {
                         log.debug("Found organization-level Code of Conduct file in {}'s .github repository", owner);
@@ -183,9 +182,7 @@ public class GitHubCodeOfConductProvider implements CodeOfConductProvider {
         }
     }
     
-    /**
-     * Helper class to store cached content with expiration time.
-     */
+
     private static class CachedContent {
         private final String content;
         private final long expirationTime;
