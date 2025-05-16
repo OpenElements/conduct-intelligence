@@ -81,4 +81,4 @@ See the [LICENSE](LICENSE) file for details.
 
 ## 🤝 Contributing
 We welcome contributions!
-Please read our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
+Please read our [CONTRIBUTING.md](https://github.com/OpenElements/.github/blob/main/CONTRIBUTING.md) for guidelines on how to get started.
