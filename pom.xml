@@ -10,7 +10,7 @@
   </parent>
   <groupId>com.open-elements</groupId>
   <artifactId>conduct-guardian</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
   <name>Conduct Guardian</name>
   <description>Check Github comments against a Code of Conduct and report violations</description>
   <url/>
