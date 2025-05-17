@@ -20,8 +20,7 @@ public class FallbackConfig {
     @ConditionalOnMissingBean(ConductChecker.class)
     ConductChecker fallbackConductChecker(@Autowired(required = false) List<CodeOfConductProvider> providers) {
         log.warn("No ConductChecker implementation found. Using fallback implementation with basic keyword analysis.");
-        
-        // Find an appropriate provider to use
+
         CodeOfConductProvider provider;
         if (providers == null || providers.isEmpty()) {
             log.warn("No CodeOfConductProvider found, creating a fallback provider");
