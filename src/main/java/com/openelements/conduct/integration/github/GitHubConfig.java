@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @ConditionalOnProperty(
@@ -28,6 +29,7 @@ public class GitHubConfig {
     private long cacheExpirationMinutes;
 
     @Bean
+    @Primary
     CodeOfConductProvider githubCodeOfConductProvider(GitHubClient gitHubClient) {
         return new GitHubCodeOfConductProvider(gitHubClient, owner, repo, branch, cacheExpirationMinutes);
     }
