@@ -9,10 +9,14 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-// import java.nio.file.Files;
-// import java.nio.file.Path;
-// import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
+/**
+ * A fallback implementation of CodeOfConductProvider that provides a default Code of Conduct.
+ * This is used when no other CodeOfConductProvider implementations are available.
+ */
 public class FallbackCodeOfConductProvider implements CodeOfConductProvider {
 
     private static final Logger log = LoggerFactory.getLogger(FallbackCodeOfConductProvider.class);
@@ -20,6 +24,7 @@ public class FallbackCodeOfConductProvider implements CodeOfConductProvider {
 
     @Override
     public boolean supports(@NonNull TextfileType type) {
+        // We support all text file types with our default content
         return true;
     }
 
