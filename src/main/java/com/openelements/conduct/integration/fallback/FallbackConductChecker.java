@@ -117,8 +117,7 @@ public class FallbackConductChecker implements ConductChecker {
             }
             
             reasonBuilder.append("Please review the message against the code of conduct.");
-            
-            // Determine severity based on number and type of findings
+
             ViolationState state = (foundOffensiveTerms.size() > 2 || !foundDiscriminatoryContexts.isEmpty()) 
                     ? ViolationState.VIOLATION 
                     : ViolationState.POSSIBLE_VIOLATION;
@@ -140,10 +139,7 @@ public class FallbackConductChecker implements ConductChecker {
         String pattern = "\\b" + Pattern.quote(word) + "\\b";
         return Pattern.compile(pattern).matcher(text).find();
     }
-    
-    /**
-     * Checks if a term appears in a potentially negative context
-     */
+
     private boolean isInNegativeContext(String text, String term) {
         // Look for the term in proximity to negative words
         int termIndex = text.indexOf(term);
