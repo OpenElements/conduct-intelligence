@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 @ConditionalOnProperty(
@@ -19,13 +20,14 @@ public class OpenAiConfig {
     @Value("${guardian.integration.openai.apiKey}")
     private String apiKey;
 
-    @Value("${guardian.integration.openai.model:gpt-3.5-turbo}")
+    @Value("${guardian.integration.openai.model}")
     private String model;
 
-    @Value("${guardian.integration.openai.endpoint:https://api.openai.com/v1/chat/completions}")
+    @Value("${guardian.integration.openai.endpoint}")
     private String endpoint;
 
     @Bean
+    @Primary
     ConductChecker gptBasedConductChecker(@NonNull final CodeOfConductProvider codeOfConductProvider) {
         return new OpenAiBasedConductChecker(endpoint, apiKey, model, codeOfConductProvider);
     }

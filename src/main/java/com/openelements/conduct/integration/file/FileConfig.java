@@ -4,7 +4,6 @@ import com.openelements.conduct.data.CodeOfConductProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 
 @Configuration
 @ConditionalOnProperty(
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Primary;
 public class FileConfig {
 
     @Bean
-    @Primary
     CodeOfConductProvider fileBasedCodeOfConductProvider() {
         return new FileBasedCodeOfConductProvider();
     }
