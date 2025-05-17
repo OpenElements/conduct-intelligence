@@ -1,5 +1,6 @@
 package com.openelements.conduct.integration.fallback;
 
+import com.openelements.conduct.data.CodeOfConductProvider;
 import com.openelements.conduct.data.ConductChecker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,8 @@ public class FallbackConfig {
 
     @Bean
     @ConditionalOnMissingBean(ConductChecker.class)
-    ConductChecker fallbackConductChecker() {
-        log.warn("No ConductChecker implementation found. Using fallback implementation that performs no actual checking.");
-        return new FallbackConductChecker();
+    ConductChecker fallbackConductChecker(CodeOfConductProvider codeOfConductProvider) {
+        log.warn("No ConductChecker implementation found. Using fallback implementation with basic keyword analysis.");
+        return new FallbackConductChecker(codeOfConductProvider);
     }
 }
