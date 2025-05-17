@@ -80,23 +80,20 @@ public class FallbackConductChecker implements ConductChecker {
                 foundOffensiveTerms.add(term);
             }
         }
-        
-        // Check for discriminatory terms in context
+
         List<String> foundDiscriminatoryContexts = new ArrayList<>();
         for (String term : DISCRIMINATORY_TERMS) {
             if (containsWholeWord(fullContent, term)) {
-                // Check if the term is used in a potentially negative context
+
                 if (isInNegativeContext(fullContent, term)) {
                     foundDiscriminatoryContexts.add(term);
                 }
             }
         }
-        
-        // Check for attack patterns
+
         boolean containsAttackPattern = ATTACK_PATTERNS.stream()
                 .anyMatch(pattern -> pattern.matcher(fullContent).find());
-        
-        // Determine violation state based on findings
+
         if (!foundOffensiveTerms.isEmpty() || !foundDiscriminatoryContexts.isEmpty() || containsAttackPattern) {
             StringBuilder reasonBuilder = new StringBuilder("Potential code of conduct violation detected: ");
             
