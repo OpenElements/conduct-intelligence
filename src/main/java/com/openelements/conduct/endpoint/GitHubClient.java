@@ -89,6 +89,44 @@ public class GitHubClient {
         }
     }
 
+    /**
+     * Gets the content of a file from a GitHub repository.
+     *
+     * @param owner The owner of the repository
+     * @param repo The name of the repository
+     * @param path The path to the file
+     * @param ref The name of the commit/branch/tag (optional, can be null)
+     * @return The file content as a JsonNode
+     */
+    public JsonNode getRepositoryFileContent(final @NonNull String owner, final @NonNull String repo,
+                                           final @NonNull String path, final String ref) {
+        Objects.requireNonNull(owner, "owner must not be null");
+        Objects.requireNonNull(repo, "repo must not be null");
+        Objects.requireNonNull(path, "path must not be null");
+        
+        if (owner.isBlank()) {
+            throw new IllegalArgumentException("owner must not be blank");
+        }
+        if (repo.isBlank()) {
+            throw new IllegalArgumentException("repo must not be blank");
+        }
+        if (path.isBlank()) {
+            throw new IllegalArgumentException("path must not be blank");
+        }
+        
+        try {
+            String apiUrl = "https://api.github.com/repos/" + owner + "/" + repo + "/contents/" + path;
+            if (ref != null && !ref.isBlank()) {
+                apiUrl += "?ref=" + ref;
+            }
+            
+            final URI uri = new URI(apiUrl);
+            return executeGet(uri);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching file content from GitHub: " + owner + "/" + repo + "/" + path, e);
+        }
+    }
+
     private void executePost(final @NonNull URI uri, final @NonNull String payload) {
         try {
             final HttpClient client = HttpClient.newHttpClient();
