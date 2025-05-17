@@ -18,17 +18,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * A fallback implementation of ConductChecker that uses a simple keyword-based algorithm
- * to detect potential code of conduct violations when no other checker is available.
- */
 public class FallbackConductChecker implements ConductChecker {
 
     private static final Logger log = LoggerFactory.getLogger(FallbackConductChecker.class);
     
     private final CodeOfConductProvider codeOfConductProvider;
-    
-    // Common offensive terms and patterns that might indicate CoC violations
+
     private static final Set<String> OFFENSIVE_TERMS = new HashSet<>(Arrays.asList(
             "idiot", "stupid", "dumb", "moron", "retard", 
             "crap", "shit", "fuck", "damn", "ass", "asshole",
@@ -36,8 +31,7 @@ public class FallbackConductChecker implements ConductChecker {
             "hate", "kill", "die", "attack", "terrible", "horrible",
             "useless", "worthless", "incompetent", "pathetic"
     ));
-    
-    // Terms that might indicate harassment or discrimination
+
     private static final Set<String> DISCRIMINATORY_TERMS = new HashSet<>(Arrays.asList(
             "racist", "sexist", "homophobic", "transphobic", "bigot",
             "nazi", "fascist", "communist", "terrorist",
@@ -45,8 +39,7 @@ public class FallbackConductChecker implements ConductChecker {
             "jew", "muslim", "christian", "hindu", "buddhist",
             "woman", "man", "girl", "boy", "female", "male"
     ));
-    
-    // Patterns that might indicate personal attacks
+
     private static final List<Pattern> ATTACK_PATTERNS = Arrays.asList(
             Pattern.compile("(?i)you are (a|an) ([a-z\\s]+)"),
             Pattern.compile("(?i)you're (a|an) ([a-z\\s]+)"),
@@ -69,11 +62,9 @@ public class FallbackConductChecker implements ConductChecker {
         
         String messageContent = message.message().toLowerCase();
         String messageTitle = message.title() != null ? message.title().toLowerCase() : "";
-        
-        // Combine title and message for analysis
+
         String fullContent = messageTitle + " " + messageContent;
-        
-        // Check for offensive terms
+
         List<String> foundOffensiveTerms = new ArrayList<>();
         for (String term : OFFENSIVE_TERMS) {
             if (containsWholeWord(fullContent, term)) {
@@ -128,26 +119,21 @@ public class FallbackConductChecker implements ConductChecker {
                 "No potential violations detected by basic keyword analysis."
         );
     }
-    
-    /**
-     * Checks if the text contains the whole word (not just as part of another word)
-     */
+
     private boolean containsWholeWord(String text, String word) {
         String pattern = "\\b" + Pattern.quote(word) + "\\b";
         return Pattern.compile(pattern).matcher(text).find();
     }
 
     private boolean isInNegativeContext(String text, String term) {
-        // Look for the term in proximity to negative words
+
         int termIndex = text.indexOf(term);
         if (termIndex == -1) return false;
-        
-        // Get a window of text around the term
+
         int startIndex = Math.max(0, termIndex - 30);
         int endIndex = Math.min(text.length(), termIndex + term.length() + 30);
         String context = text.substring(startIndex, endIndex);
-        
-        // Check for negative words in this context
+
         for (String negativeWord : Arrays.asList("hate", "stupid", "bad", "terrible", "awful", "worst", 
                 "not", "never", "against", "dislike", "reject", "wrong", "evil", "sick", "disgusting")) {
             if (containsWholeWord(context, negativeWord)) {
