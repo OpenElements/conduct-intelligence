@@ -1,0 +1,4 @@
+[release.github]
+enabled = true
+owner = "OpenElements"
+name = "Conduct-Guardian"
