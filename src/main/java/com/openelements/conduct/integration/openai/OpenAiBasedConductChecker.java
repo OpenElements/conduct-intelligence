@@ -88,7 +88,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
     @Override
     public @NonNull CheckResult check(@NonNull final Message message) {
         final String prompt = createPrompt(message);
-        final JsonNode jsonNode = calOpenAIEndpoint(prompt);
+        final JsonNode jsonNode = callOpenAIEndpoint(endpoint, prompt);
         final String result = jsonNode.get("result").asText();
         final String reason = jsonNode.get("reason").asText();
         final ViolationState violationState = ViolationState.valueOf(result);
@@ -100,7 +100,8 @@ public class OpenAiBasedConductChecker implements ConductChecker {
     }
 
     @Nullable
-    private JsonNode calOpenAIEndpoint(@NotNull final String prompt) {
+    private JsonNode callOpenAIEndpoint(@NotNull final String url, @NotNull final String prompt) {
+        Objects.requireNonNull(url, "url must not be null");
         Objects.requireNonNull(prompt, "prompt must not be null");
         try {
             final ObjectMapper objectMapper = new ObjectMapper();
@@ -118,7 +119,7 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             final HttpClient httpClient = HttpClient.newBuilder().version(Version.HTTP_1_1)
                     .build();
             final HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(endpoint))
+                    .uri(URI.create(url))
                     .header(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                     .header(HttpHeaders.CONTENT_TYPE, "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(requestNode.toString()))
@@ -126,6 +127,12 @@ public class OpenAiBasedConductChecker implements ConductChecker {
             final HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             final String responseBody = response.body();
             log.debug("Response from OpenAI API: {}", responseBody);
+            if (response.statusCode() == 307) {
+                final String location = response.headers().firstValue("Location")
+                        .orElseThrow(() -> new IllegalStateException("No Location header found in 307 response"));
+                log.info("Received 307 redirect from OpenAI API. Redirecting to: {}", location);
+                return callOpenAIEndpoint(location, prompt);
+            }
             if (response.statusCode() != 200) {
                 throw new IllegalStateException("Error calling OpenAI API: " + responseBody);
             }
