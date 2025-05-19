@@ -21,16 +21,10 @@ public class GitHubConfig {
 
     @Value("${guardian.integration.github.coc.repo:Conduct-Guardian}")
     private String repo;
-
-    @Value("${guardian.integration.github.coc.branch:main}")
-    private String branch;
     
-    @Value("${guardian.integration.github.coc.cache-expiration-minutes:60}")
-    private long cacheExpirationMinutes;
-
     @Bean
     @Primary
     CodeOfConductProvider githubCodeOfConductProvider(GitHubClient gitHubClient) {
-        return new GitHubCodeOfConductProvider(gitHubClient, owner, repo, branch, cacheExpirationMinutes);
+        return new GitHubCodeOfConductProvider(gitHubClient, owner, repo);
     }
 }
