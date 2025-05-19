@@ -10,6 +10,7 @@ import com.openelements.conduct.data.ConductChecker;
 import com.openelements.conduct.data.Message;
 import com.openelements.conduct.data.TextfileType;
 import com.openelements.conduct.data.ViolationState;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Version;
@@ -39,6 +40,8 @@ public class OpenAiBasedConductChecker implements ConductChecker {
 
     private final String model;
 
+    private final String prompt;
+
     public OpenAiBasedConductChecker(@NonNull final String endpoint,
             @NonNull final String apiKey,
             @NonNull final String model,
@@ -60,26 +63,22 @@ public class OpenAiBasedConductChecker implements ConductChecker {
                 .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
+
+        try (final InputStream inputStream = OpenAiBasedConductChecker.class.getResourceAsStream("prompt.txt")) {
+            if (inputStream == null) {
+                throw new IllegalStateException("Prompt file not found");
+            }
+            this.prompt = new String(inputStream.readAllBytes());
+        } catch (Exception e) {
+            throw new RuntimeException("Error loading prompt file", e);
+        }
     }
 
     private String createPrompt(@NonNull Message message) {
         Objects.requireNonNull(message, "message must not be null");
         if (codeOfConductProvider.supports(TextfileType.MARKDOWN)) {
             String codeOfConduct = codeOfConductProvider.getCodeOfConduct(TextfileType.MARKDOWN);
-            return """
-                    You are a code of conduct checker for an open source project.
-                    Your task is to check if the following message violates the code of conduct of the project.
-                    
-                    Your answer must be in a JSON format with the following fields:
-                    - result: the result of the check. Allowed values are NONE, POSSIBLE_VIOLATION or VIOLATION
-                    - reason: a short text explaining the result
-                    
-                    The message has the title (can be null and should be ignored than): %s
-                    The message has the text: %s
-                    
-                    The code of conduct is:
-                    %s
-                    """.formatted(message.title(), message.message(), codeOfConduct);
+            return prompt.formatted(message.title(), message.message(), codeOfConduct);
         } else {
             throw new UnsupportedOperationException("Not implemented yet other texttype than markdown.");
         }
