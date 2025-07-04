@@ -2,8 +2,10 @@ package com.openelements.conduct.api.dto;
 
 import org.jspecify.annotations.NonNull;
 
-public record TrendAnalysis(
+public record TrendSummaryDto(
     @NonNull String trend,
     double changePercentage,
-    @NonNull String description
+    @NonNull String description,
+    long totalReports,
+    double averageViolationsPerDay
 ) {}

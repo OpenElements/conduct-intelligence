@@ -1,7 +1,8 @@
 package com.openelements.conduct.service;
 
 import com.openelements.conduct.api.dto.AnalysisDto;
-import com.openelements.conduct.api.dto.TrendAnalysis;
+import com.openelements.conduct.api.dto.TrendSummaryDto;
+import com.openelements.conduct.data.ViolationState;
 import com.openelements.conduct.repository.ViolationReport;
 import com.openelements.conduct.repository.ViolationReportRepository;
 import org.jspecify.annotations.NonNull;
@@ -32,122 +33,146 @@ public class AnalysisService {
             return createEmptyAnalysis();
         }
 
-        Map<String, Long> violationsByState = reports.stream()
+        // Calculate total counts
+        int totalNoViolationCount = (int) reports.stream()
+                .filter(r -> r.violationState() == ViolationState.NONE).count();
+        int totalPossibleViolationCount = (int) reports.stream()
+                .filter(r -> r.violationState() == ViolationState.POSSIBLE_VIOLATION).count();
+        int totalViolationCount = (int) reports.stream()
+                .filter(r -> r.violationState() == ViolationState.VIOLATION).count();
+
+        // Calculate daily averages
+        Map<String, List<ViolationReport>> reportsByDay = reports.stream()
                 .collect(Collectors.groupingBy(
-                    report -> report.getViolationState().toString(),
-                    Collectors.counting()
+                    report -> report.timestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                 ));
 
-        Map<String, Long> violationsBySeverity = reports.stream()
+        int averageNoViolationCountPerDay = calculateDailyAverage(reportsByDay, ViolationState.NONE);
+        int averagePossibleViolationCountPerDay = calculateDailyAverage(reportsByDay, ViolationState.POSSIBLE_VIOLATION);
+        int averageViolationCountPerDay = calculateDailyAverage(reportsByDay, ViolationState.VIOLATION);
+
+        // Calculate daily maximums
+        int maxNoViolationCountPerDay = calculateDailyMaximum(reportsByDay, ViolationState.NONE);
+        int maxPossibleViolationCountPerDay = calculateDailyMaximum(reportsByDay, ViolationState.POSSIBLE_VIOLATION);
+        int maxViolationCountPerDay = calculateDailyMaximum(reportsByDay, ViolationState.VIOLATION);
+
+        // Calculate this week averages
+        LocalDateTime weekStart = LocalDateTime.now().minusDays(7);
+        List<ViolationReport> thisWeekReports = reports.stream()
+                .filter(r -> r.timestamp().isAfter(weekStart))
+                .collect(Collectors.toList());
+
+        Map<String, List<ViolationReport>> thisWeekReportsByDay = thisWeekReports.stream()
                 .collect(Collectors.groupingBy(
-                    ViolationReport::getSeverity,
-                    Collectors.counting()
+                    report -> report.timestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                 ));
 
-        Map<String, Long> violationsByHour = reports.stream()
-                .collect(Collectors.groupingBy(
-                    report -> String.valueOf(report.getTimestamp().getHour()),
-                    Collectors.counting()
-                ));
+        int averageNoViolationCountPerDayInThisWeek = calculateDailyAverage(thisWeekReportsByDay, ViolationState.NONE);
+        int averagePossibleViolationCountPerDayInThisWeek = calculateDailyAverage(thisWeekReportsByDay, ViolationState.POSSIBLE_VIOLATION);
+        int averageViolationCountPerDayInThisWeek = calculateDailyAverage(thisWeekReportsByDay, ViolationState.VIOLATION);
 
-        Map<String, Long> violationsByDay = reports.stream()
-                .collect(Collectors.groupingBy(
-                    report -> report.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                    Collectors.counting()
-                ));
+        // Calculate growth metrics
+        LocalDateTime lastWeekStart = LocalDateTime.now().minusDays(14);
+        LocalDateTime lastWeekEnd = LocalDateTime.now().minusDays(7);
+        
+        List<ViolationReport> lastWeekReports = reports.stream()
+                .filter(r -> r.timestamp().isAfter(lastWeekStart) && r.timestamp().isBefore(lastWeekEnd))
+                .collect(Collectors.toList());
 
-        double averageViolationsPerDay = calculateAverageViolationsPerDay(reports);
-        String mostCommonViolationType = findMostCommonViolationType(violationsByState);
-        TrendAnalysis trends = analyzeTrends(reports);
+        double generalGrowthOfChecksInPercentage = calculateGrowthPercentage(lastWeekReports.size(), thisWeekReports.size());
+        double growthOfNoViolationCountAgainstLastWeek = calculateGrowthPercentage(
+                (int) lastWeekReports.stream().filter(r -> r.violationState() == ViolationState.NONE).count(),
+                (int) thisWeekReports.stream().filter(r -> r.violationState() == ViolationState.NONE).count()
+        );
+        double growthOfPossibleViolationCountAgainstLastWeek = calculateGrowthPercentage(
+                (int) lastWeekReports.stream().filter(r -> r.violationState() == ViolationState.POSSIBLE_VIOLATION).count(),
+                (int) thisWeekReports.stream().filter(r -> r.violationState() == ViolationState.POSSIBLE_VIOLATION).count()
+        );
+        double growthOfViolationCountAgainstLastWeek = calculateGrowthPercentage(
+                (int) lastWeekReports.stream().filter(r -> r.violationState() == ViolationState.VIOLATION).count(),
+                (int) thisWeekReports.stream().filter(r -> r.violationState() == ViolationState.VIOLATION).count()
+        );
 
         return new AnalysisDto(
-            violationsByState,
-            violationsBySeverity,
-            violationsByHour,
-            violationsByDay,
-            averageViolationsPerDay,
-            mostCommonViolationType,
-            LocalDateTime.now(),
-            reports.size(),
-            trends
+            totalNoViolationCount,
+            totalPossibleViolationCount,
+            totalViolationCount,
+            averageNoViolationCountPerDay,
+            averagePossibleViolationCountPerDay,
+            averageViolationCountPerDay,
+            maxNoViolationCountPerDay,
+            maxPossibleViolationCountPerDay,
+            maxViolationCountPerDay,
+            averageNoViolationCountPerDayInThisWeek,
+            averagePossibleViolationCountPerDayInThisWeek,
+            averageViolationCountPerDayInThisWeek,
+            generalGrowthOfChecksInPercentage,
+            growthOfNoViolationCountAgainstLastWeek,
+            growthOfPossibleViolationCountAgainstLastWeek,
+            growthOfViolationCountAgainstLastWeek,
+            LocalDateTime.now()
+        );
+    }
+
+    public TrendSummaryDto generateTrendSummary() {
+        AnalysisDto analysis = generateAnalysis();
+        
+        String trend = determineTrend(analysis.generalGrowthOfChecksInPercentage());
+        String description = String.format("General growth: %.1f%%, Violations growth: %.1f%%", 
+            analysis.generalGrowthOfChecksInPercentage(), 
+            analysis.growthOfViolationCountAgainstLastWeek());
+        
+        return new TrendSummaryDto(
+            trend,
+            analysis.generalGrowthOfChecksInPercentage(),
+            description,
+            analysis.totalNoViolationCount() + analysis.totalPossibleViolationCount() + analysis.totalViolationCount(),
+            analysis.averageViolationCountPerDay()
         );
     }
 
     private AnalysisDto createEmptyAnalysis() {
         return new AnalysisDto(
-            Map.of(),
-            Map.of(),
-            Map.of(),
-            Map.of(),
-            0.0,
-            "No violations",
-            LocalDateTime.now(),
-            0L,
-            new TrendAnalysis("STABLE", 0.0, "No data available for trend analysis")
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, LocalDateTime.now()
         );
     }
 
-    private double calculateAverageViolationsPerDay(List<ViolationReport> reports) {
-        if (reports.isEmpty()) return 0.0;
+    private int calculateDailyAverage(Map<String, List<ViolationReport>> reportsByDay, ViolationState state) {
+        if (reportsByDay.isEmpty()) return 0;
         
-        Map<String, Long> dailyCounts = reports.stream()
-                .collect(Collectors.groupingBy(
-                    report -> report.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                    Collectors.counting()
-                ));
-        
-        return dailyCounts.values().stream()
-                .mapToLong(Long::longValue)
+        double average = reportsByDay.values().stream()
+                .mapToInt(dayReports -> (int) dayReports.stream()
+                        .filter(r -> r.violationState() == state)
+                        .count())
                 .average()
                 .orElse(0.0);
+        
+        return (int) Math.round(average);
     }
 
-    private String findMostCommonViolationType(Map<String, Long> violationsByState) {
-        return violationsByState.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(Map.Entry::getKey)
-                .orElse("No violations");
+    private int calculateDailyMaximum(Map<String, List<ViolationReport>> reportsByDay, ViolationState state) {
+        return reportsByDay.values().stream()
+                .mapToInt(dayReports -> (int) dayReports.stream()
+                        .filter(r -> r.violationState() == state)
+                        .count())
+                .max()
+                .orElse(0);
     }
 
-    private TrendAnalysis analyzeTrends(List<ViolationReport> reports) {
-        if (reports.size() < 2) {
-            return new TrendAnalysis("STABLE", 0.0, "Insufficient data for trend analysis");
+    private double calculateGrowthPercentage(int oldValue, int newValue) {
+        if (oldValue == 0) {
+            return newValue > 0 ? 100.0 : 0.0;
         }
+        return ((double) (newValue - oldValue) / oldValue) * 100.0;
+    }
 
-        // Analyze last 7 days vs previous 7 days
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime weekAgo = now.minusDays(7);
-        LocalDateTime twoWeeksAgo = now.minusDays(14);
-
-        long recentWeekCount = reports.stream()
-                .filter(report -> report.getTimestamp().isAfter(weekAgo))
-                .count();
-
-        long previousWeekCount = reports.stream()
-                .filter(report -> report.getTimestamp().isAfter(twoWeeksAgo) && 
-                                report.getTimestamp().isBefore(weekAgo))
-                .count();
-
-        if (previousWeekCount == 0) {
-            return new TrendAnalysis("INCREASING", 100.0, "New violations detected this week");
-        }
-
-        double changePercentage = ((double) (recentWeekCount - previousWeekCount) / previousWeekCount) * 100;
-        
-        String trend;
-        String description;
-        
-        if (Math.abs(changePercentage) < 10) {
-            trend = "STABLE";
-            description = "Violation rates remain relatively stable";
-        } else if (changePercentage > 0) {
-            trend = "INCREASING";
-            description = String.format("Violations increased by %.1f%% compared to previous week", changePercentage);
+    private String determineTrend(double growthPercentage) {
+        if (Math.abs(growthPercentage) < 10) {
+            return "STABLE";
+        } else if (growthPercentage > 0) {
+            return "INCREASING";
         } else {
-            trend = "DECREASING";
-            description = String.format("Violations decreased by %.1f%% compared to previous week", Math.abs(changePercentage));
+            return "DECREASING";
         }
-
-        return new TrendAnalysis(trend, changePercentage, description);
     }
 }

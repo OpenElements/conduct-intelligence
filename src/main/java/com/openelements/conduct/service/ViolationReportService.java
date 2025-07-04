@@ -30,12 +30,9 @@ public class ViolationReportService {
     public void saveReport(@NonNull CheckResult checkResult) {
         Objects.requireNonNull(checkResult, "checkResult must not be null");
         
-        String title = checkResult.message().title() != null ? checkResult.message().title() : "No Title";
-        String content = checkResult.message().message();
-        
         ViolationReport report = new ViolationReport(
-            title,
-            content,
+            checkResult.message().title(),
+            checkResult.message().message(),
             checkResult.message().link(),
             checkResult.state(),
             checkResult.reason()
@@ -51,10 +48,9 @@ public class ViolationReportService {
         
         // Apply filters
         List<ViolationReport> filteredReports = allReports.stream()
-                .filter(report -> violationState == null || report.getViolationState() == violationState)
-                .filter(report -> severity == null || report.getSeverity().equals(severity))
-                .filter(report -> startDate == null || !report.getTimestamp().isBefore(startDate))
-                .filter(report -> endDate == null || !report.getTimestamp().isAfter(endDate))
+                .filter(report -> violationState == null || report.violationState() == violationState)
+                .filter(report -> startDate == null || !report.timestamp().isBefore(startDate))
+                .filter(report -> endDate == null || !report.timestamp().isAfter(endDate))
                 .collect(Collectors.toList());
         
         // Apply sorting
@@ -93,24 +89,23 @@ public class ViolationReportService {
 
     private Comparator<ViolationReport> getComparator(String sortBy) {
         return switch (sortBy) {
-            case "timestamp" -> Comparator.comparing(ViolationReport::getTimestamp);
-            case "severity" -> Comparator.comparing(ViolationReport::getSeverity);
-            case "violationState" -> Comparator.comparing(ViolationReport::getViolationState);
-            case "messageTitle" -> Comparator.comparing(ViolationReport::getMessageTitle);
-            default -> Comparator.comparing(ViolationReport::getTimestamp);
+            case "timestamp" -> Comparator.comparing(ViolationReport::timestamp);
+            case "violationState" -> Comparator.comparing(ViolationReport::violationState);
+            case "messageTitle" -> Comparator.comparing(ViolationReport::messageTitle, 
+                Comparator.nullsLast(Comparator.naturalOrder()));
+            default -> Comparator.comparing(ViolationReport::timestamp);
         };
     }
 
     private ViolationReportDto convertToDto(ViolationReport report) {
         return new ViolationReportDto(
-            report.getId(),
-            report.getMessageTitle(),
-            report.getMessageContent(),
-            report.getMessageUrl(),
-            report.getViolationState(),
-            report.getReason(),
-            report.getTimestamp(),
-            report.getSeverity()
+            report.id(),
+            report.messageTitle(),
+            report.messageContent(),
+            report.messageUrl(),
+            report.violationState(),
+            report.reason(),
+            report.timestamp()
         );
     }
 }

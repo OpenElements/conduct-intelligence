@@ -34,7 +34,7 @@ public class ViolationReportRepository {
 
     public List<ViolationReport> findByViolationState(@NonNull ViolationState state) {
         return reports.stream()
-                .filter(report -> report.getViolationState() == state)
+                .filter(report -> report.violationState() == state)
                 .collect(Collectors.toList());
     }
 
@@ -46,13 +46,13 @@ public class ViolationReportRepository {
 
     public List<ViolationReport> findByDateRange(@NonNull LocalDateTime start, @NonNull LocalDateTime end) {
         return reports.stream()
-                .filter(report -> !report.getTimestamp().isBefore(start) && !report.getTimestamp().isAfter(end))
+                .filter(report -> !report.timestamp().isBefore(start) && !report.timestamp().isAfter(end))
                 .collect(Collectors.toList());
     }
 
     public Optional<ViolationReport> findById(@NonNull String id) {
         return reports.stream()
-                .filter(report -> report.getId().equals(id))
+                .filter(report -> report.id().equals(id))
                 .findFirst();
     }
 
