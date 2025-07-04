@@ -33,12 +33,10 @@ public class ViolationReportController {
             @RequestParam(required = false) ViolationState violationState,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        
-        // Validate pagination parameters
+
         if (page < 0) page = 0;
         if (size <= 0 || size > 100) size = 100;
-        
-        // Pass null (or appropriate value) for the missing String parameter
+
         PagedResponse<ViolationReportDto> response = violationReportService.getReports(
             page, size, sortBy, sortDir, violationState, null, startDate, endDate
         );
