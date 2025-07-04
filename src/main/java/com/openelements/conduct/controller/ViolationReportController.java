@@ -36,7 +36,7 @@ public class ViolationReportController {
         
         // Validate pagination parameters
         if (page < 0) page = 0;
-        if (size <= 0 || size > 100) size = 20;
+        if (size <= 0 || size > 100) size = 100;
         
         // Pass null (or appropriate value) for the missing String parameter
         PagedResponse<ViolationReportDto> response = violationReportService.getReports(
