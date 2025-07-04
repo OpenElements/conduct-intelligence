@@ -53,7 +53,6 @@ public class ViolationReportController {
 
     @GetMapping("/stats")
     public ResponseEntity<ReportStats> getStats() {
-        // This could be expanded to include more detailed statistics
         return ResponseEntity.ok(new ReportStats("Statistics endpoint - implement as needed"));
     }
 
