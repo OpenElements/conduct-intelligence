@@ -38,8 +38,9 @@ public class ViolationReportController {
         if (page < 0) page = 0;
         if (size <= 0 || size > 100) size = 20;
         
+        // Pass null (or appropriate value) for the missing String parameter
         PagedResponse<ViolationReportDto> response = violationReportService.getReports(
-            page, size, sortBy, sortDir, violationState, startDate, endDate
+            page, size, sortBy, sortDir, violationState, null, startDate, endDate
         );
         
         return ResponseEntity.ok(response);

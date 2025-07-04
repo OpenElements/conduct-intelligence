@@ -38,12 +38,6 @@ public class ViolationReportRepository {
                 .collect(Collectors.toList());
     }
 
-    public List<ViolationReport> findBySeverity(@NonNull String severity) {
-        return reports.stream()
-                .filter(report -> report.getSeverity().equals(severity))
-                .collect(Collectors.toList());
-    }
-
     public List<ViolationReport> findByDateRange(@NonNull LocalDateTime start, @NonNull LocalDateTime end) {
         return reports.stream()
                 .filter(report -> !report.timestamp().isBefore(start) && !report.timestamp().isAfter(end))
