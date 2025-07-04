@@ -1,7 +1,6 @@
 package com.openelements.conduct.controller;
 
 import com.openelements.conduct.api.dto.AnalysisDto;
-import com.openelements.conduct.api.dto.TrendSummaryDto;
 import com.openelements.conduct.service.AnalysisService;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,10 +24,5 @@ public class AnalysisController {
     @GetMapping
     public AnalysisDto getAnalysis() {
         return analysisService.generateAnalysis();
-    }
-
-    @GetMapping("/trends")
-    public TrendSummaryDto getTrends() {
-        return analysisService.generateTrendSummary();
     }
 }

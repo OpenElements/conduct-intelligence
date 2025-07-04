@@ -1,7 +1,6 @@
 package com.openelements.conduct.service;
 
 import com.openelements.conduct.api.dto.AnalysisDto;
-import com.openelements.conduct.api.dto.TrendSummaryDto;
 import com.openelements.conduct.data.ViolationState;
 import com.openelements.conduct.repository.ViolationReport;
 import com.openelements.conduct.repository.ViolationReportRepository;
@@ -114,23 +113,6 @@ public class AnalysisService {
         );
     }
 
-    public TrendSummaryDto generateTrendSummary() {
-        AnalysisDto analysis = generateAnalysis();
-        
-        String trend = determineTrend(analysis.generalGrowthOfChecksInPercentage());
-        String description = String.format("General growth: %.1f%%, Violations growth: %.1f%%", 
-            analysis.generalGrowthOfChecksInPercentage(), 
-            analysis.growthOfViolationCountAgainstLastWeek());
-        
-        return new TrendSummaryDto(
-            trend,
-            analysis.generalGrowthOfChecksInPercentage(),
-            description,
-            analysis.totalNoViolationCount() + analysis.totalPossibleViolationCount() + analysis.totalViolationCount(),
-            analysis.averageViolationCountPerDay()
-        );
-    }
-
     private AnalysisDto createEmptyAnalysis() {
         return new AnalysisDto(
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0.0, 0.0, 0.0, LocalDateTime.now()
@@ -164,15 +146,5 @@ public class AnalysisService {
             return newValue > 0 ? 100.0 : 0.0;
         }
         return ((double) (newValue - oldValue) / oldValue) * 100.0;
-    }
-
-    private String determineTrend(double growthPercentage) {
-        if (Math.abs(growthPercentage) < 10) {
-            return "STABLE";
-        } else if (growthPercentage > 0) {
-            return "INCREASING";
-        } else {
-            return "DECREASING";
-        }
     }
 }
