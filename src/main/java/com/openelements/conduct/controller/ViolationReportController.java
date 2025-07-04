@@ -31,7 +31,6 @@ public class ViolationReportController {
             @RequestParam(defaultValue = "timestamp") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir,
             @RequestParam(required = false) ViolationState violationState,
-            @RequestParam(required = false) String severity,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
         
@@ -40,7 +39,7 @@ public class ViolationReportController {
         if (size <= 0 || size > 100) size = 20;
         
         PagedResponse<ViolationReportDto> response = violationReportService.getReports(
-            page, size, sortBy, sortDir, violationState, severity, startDate, endDate
+            page, size, sortBy, sortDir, violationState, startDate, endDate
         );
         
         return ResponseEntity.ok(response);
